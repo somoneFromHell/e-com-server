@@ -4,9 +4,9 @@ require('dotenv').config()
 const app = express()
 
 const products = require('./routes/productRoutes');
-const catagory = require('./routes/catagoryRoutes');
-const subCatagory = require('./routes/subCatagoryRouts');
-const subSubCatagory = require('./routes/subSubCatagoryRouts');
+const category = require('./routes/categoryRoutes');
+const subCategory = require('./routes/subCategoryRouts');
+const subSubCategory = require('./routes/subSubCategoryRouts');
 
 
 
@@ -18,9 +18,9 @@ mongoose.connect(mongoString,{autoIndex:true})
 
 app.use(express.json());
 app.use('/api/products/', products)
-app.use('/api/catagory/',catagory)
-app.use('/api/sub-catagory/',subCatagory)
-app.use('/api/sub-sub-catagory/',subSubCatagory)
+app.use('/api/category/',category)
+app.use('/api/sub-category/',subCategory)
+app.use('/api/sub-sub-category/',subSubCategory)
 
 // app.all('*',(req,res,next)=>{
 //     next(new AppError(`cant find on ${req.originalUrl} on this server`,400))

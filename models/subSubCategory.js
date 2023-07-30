@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const subCatagory = require('../models/subCatagory');
+const subCategory = require('../models/subCategory');
 
 const subCategorySchema = new mongoose.Schema({
   name: {
@@ -7,9 +7,9 @@ const subCategorySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  subCatagory:{
+  subCategory:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:subCatagory,
+    ref:subCategory,
     required:true
   },
   description: {
@@ -36,6 +36,6 @@ const subCategorySchema = new mongoose.Schema({
   },
 });
 
-const subCategory = mongoose.model('sub_sub_Category', subCategorySchema);
+const sbsubCategory = mongoose.model('sub_sub_Category', subCategorySchema);
 
-module.exports = subCategory;
+module.exports = sbsubCategory;

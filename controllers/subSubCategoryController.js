@@ -1,8 +1,8 @@
-const subsubcatagory = require('../models/subSubCatagory')
+const subsubcategory = require('../models/subSubCategory')
 
-exports.getSubSubCatagory = async (req, res, next) => {
+exports.getSubSubCategory = async (req, res, next) => {
     try {
-        const recordExists = await subsubcatagory.find({deleted:false});
+        const recordExists = await subsubcategory.find({deleted:false});
         if (recordExists) 
         res.status(200).send({data:recordExists});
       } catch (error) {
@@ -10,25 +10,25 @@ exports.getSubSubCatagory = async (req, res, next) => {
       }
 };
 
-exports.addNewSubSubCatagory = async (req, res, next) => {
+exports.addNewSubSubCategory = async (req, res, next) => {
     try {
         const body = {
             name: req.body.name,
-            subCatagory:req.body.subCatagory,
+            subCategory:req.body.subCategory,
             description: req.body.description,
           };
 
-      const newSubSubCatagoryAdded = await subsubcatagory.create(body);
-      if (newSubSubCatagoryAdded)
+      const newSubSubCategoryAdded = await subsubcategory.create(body);
+      if (newSubSubCategoryAdded)
         res.status(201).json({data:"data added successfully"});
     } catch (error) {
       res.status(500).json({ error: { message: error, code: error.code } });
     }
   };
 
-  exports.getSubSubCatagoryById = async (req, res, next) => {
+  exports.getSubSubCategoryById = async (req, res, next) => {
     try {
-      const recordExists = await subsubcatagory.findById(req.params.id);
+      const recordExists = await subsubcategory.findById(req.params.id);
       if (!recordExists || recordExists.deleted) 
         res.status(400).json({ error: { message: "bad request | record not found" } });
       
@@ -39,35 +39,35 @@ exports.addNewSubSubCatagory = async (req, res, next) => {
   };
 
 
-  exports.updateCatagory = async (req, res, next) => {
+  exports.updateCategory = async (req, res, next) => {
     try {
-      const subSubCatagoryExist = await subsubcatagory.findById(req.params.id);
+      const subSubCategoryExist = await subsubcategory.findById(req.params.id);
   
-      if (!subSubCatagoryExist || subSubCatagoryExist.deleted)
+      if (!subSubCategoryExist || subSubCategoryExist.deleted)
         res.status(404).json({ error: { message: "item not found" } });
   
       const bodyForUpdate = {
         name: req.body.name,
-        subCatagory:req.body.subCatagory,
+        subCategory:req.body.subCategory,
         description: req.body.description,
         updatedAt: Date.now(),
       };
   
-      const UpdatedCatagory = await subsubcatagory.findByIdAndUpdate(req.params.id,bodyForUpdate);
-      if (UpdatedCatagory)
+      const UpdatedCategory = await subsubcategory.findByIdAndUpdate(req.params.id,bodyForUpdate);
+      if (UpdatedCategory)
         res.status(201).json({ data:"item updated successfully" });
     } catch (error) {
       res.status(500).json({ error: { message: error, code: error.code } });
     }
   };
 
-  exports.deleteCatagory = async (req, res, next) => {
+  exports.deleteCategory = async (req, res, next) => {
     try {
-      const recordExists = await subsubcatagory.findByIdAndUpdate(req.params.id);
+      const recordExists = await subsubcategory.findByIdAndUpdate(req.params.id);
       if (!recordExists || recordExists.deleted) 
         res.status(400).json({ error: { message: "bad request | record not found" } });
         
-      const changeDeletedStatus = await subsubcatagory.findByIdAndUpdate(req.params.id,{deleted:true});
+      const changeDeletedStatus = await subsubcategory.findByIdAndUpdate(req.params.id,{deleted:true});
       if (changeDeletedStatus)
         res.status(201).json({ data:"item deleted successfully"});
     } catch (error) {
