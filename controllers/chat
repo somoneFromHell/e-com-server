@@ -1,0 +1,37 @@
+const Category = require('../models/category');
+
+exports.addNewCategory = async (req, res, next) => {
+  try {
+    const { name, description } = req.body;
+
+    // Validate input data
+    if (!name || !description) {
+      return res.status(400).json({ error: { message: "Name and description are required" } });
+    }
+
+    // Create the new category
+    const newCategory = await Category.create({ name, description });
+
+    // Respond with the created category data
+    res.status(201).json({ data: newCategory, message: "Category added successfully" });
+  } catch (error) {
+    // Handle duplicate key error (name already exists)
+    if (error.name === "MongoError" && error.code === 11000) {
+      // Get the existing category
+      const existingCategory = await Category.findOne({ name, deleted: true });
+
+      // If an existing category with the same name and deleted true is found, update it to active (deleted: false)
+      if (existingCategory) {
+        await Category.findByIdAndUpdate(existingCategory._id, { deleted: false });
+        return res.status(200).json({ data: existingCategory, message: "Existing category reactivated successfully" });
+      }
+
+      // If the existing category is not found or it's not marked as deleted, then it's a genuine duplicate key error.
+      return res.status(400).json({ error: { message: "Category with the same name already exists" } });
+    }
+
+    // Handle other errors
+    console.error("Error while adding a new category:", error);
+    res.status(500).json({ error: { message: "Server error" } });
+  }
+};
