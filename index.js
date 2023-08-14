@@ -3,12 +3,17 @@ const mongoose = require('mongoose');
 require('dotenv').config()
 const app = express()
 
+const cors = require('cors');
+
+
+
 const products = require('./routes/productRoutes');
 const category = require('./routes/categoryRoutes');
 const subCategory = require('./routes/subCategoryRouts');
 const subSubCategory = require('./routes/subSubCategoryRouts');
 
 
+app.use(cors())
 
 // -----------database connection--------------
 const mongoString = 'mongodb+srv://rango:wUDPbtLUp7ZDQZQr@cluster0.2bxued0.mongodb.net/e-com-database?retryWrites=true&w=majority';

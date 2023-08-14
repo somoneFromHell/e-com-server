@@ -46,7 +46,6 @@ exports.addNewSubCategory = async (req, res, next) => {
       name: req.body.name,
       description: req.body.description,
     };
-
     const categoryExists = await category.findById(req.body.category);
 
     if (!categoryExists || categoryExists.deleted) {
