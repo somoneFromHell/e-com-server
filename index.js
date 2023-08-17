@@ -8,6 +8,7 @@ const category = require('./routes/categoryRoutes');
 const subCategory = require('./routes/subCategoryRouts');
 const subSubCategory = require('./routes/subSubCategoryRouts');
 const role = require('./routes/roleRoutes');
+const auth = require('./routes/authRouts');
 
 app.use(cors())
 
@@ -22,6 +23,7 @@ app.use('/api/category/',category)
 app.use('/api/sub-category/',subCategory)
 app.use('/api/sub-sub-category/',subSubCategory)
 app.use('/api/role/',role)
+app.use('/api/auth/',auth)
 
 app.all('*',(req,res,next)=>{
     return res.status(400).json({ error: { message: "path not found" } });

@@ -4,8 +4,8 @@ const router = express.Router();
 
 
 
-router.post('/auth/register',createUser)
-router.post('/auth/login',loginUser)
+router.post('/register',createUser)
+router.post('/login',loginUser)
 
 
 

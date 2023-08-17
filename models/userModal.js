@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema({
   },
   recoveryEmail:{
     type: String,
-    unique: true,
   },
   password: {
     type: String,

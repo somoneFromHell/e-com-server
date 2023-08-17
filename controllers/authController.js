@@ -1,34 +1,37 @@
 const userModel = require("../models/userModal")
 const roleModel = require("../models/roleModel")
+const bcrypt = require("bcrypt")
+const jwt = require('jsonwebtoken');
 
 module.exports.createUser =  async(req,res,next) => {
     try {
-        const { firstName,middleName,lastName, email, password,role } = req.body;
-        const existingUser = await User.findOne({email:email});
-        if (existingUser) {
-          return res.status(400).json({ message: "email already taken" });
-        }
-
-        var getRole = rolesModel.findById(role)
-        if(!getRole){
-            return res.status(404).json({ message: "role not found..." });
-        }
-
-        const newUser = new userModel({
-            firstName,
-            middleName,
-            lastName,
-            email,
-            password
-          });
-
+       const {firstName,lastName,middleName,email,password,role} = req.body;
+      const existingUser = await userModel.findOne({email:req.body.email});
+      if (existingUser) {
+        return res.status(400).json({ message: "email already taken" });
+      }
+      
+      var getRole = await roleModel.findById(role)
+      if(!getRole){
+        return res.status(404).json({ message: "role not found..." });
+      }
+      const newUser = {
+        firstName:firstName,
+        middleName:middleName,
+        lastName:lastName,
+        email:email,
+        password:password,
+        role:role
+      };
+      
         const salt = await bcrypt.genSalt(10);
-        userModel.password = await bcrypt.hash(record.password, salt)
+        newUser.password = await bcrypt.hash(password, salt)
     
-        const savedUser = await newUser.save();
+        const savedUser = await userModel.create(newUser);
         res.status(201).json(savedUser);
       } catch (error) {
-        res.status(500).json({ message: "Error registering user" });
+        console.log(error)
+        res.status(500).json({ message: "Error registering user" ,error:error});
       }
 }
 
@@ -46,5 +49,5 @@ module.exports.loginUser = async (req, res,next ) => {
     if (!findRole){return next(new AppError('role dusent exist',404))} 
 
     const token = jwt.sign({Data: user,pages:findRole.pages,roleTitle:findRole.roleName}, "jwtPrivateKey",{expiresIn:'1d'})
-    res.header('Authorization',token).send({success:true,msg:token})
+    res.header('Authorization',token).send({data:token})
 }
