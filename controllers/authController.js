@@ -37,16 +37,16 @@ module.exports.createUser =  async(req,res,next) => {
 
 module.exports.loginUser = async (req, res,next ) => {
     var {email,password} = new userModel(req.body);
-    if (!email||!password) return res.status(400).send("not enaugh data")
+    if (!email||!password) return res.status(400).send("not enaugh data");
 
     const user = await userModel.findOne({ email: req.body.email });
-    if (!user) next(new AppError('incorrect email or password !!',400));
+    if (!user) return res.status(400).send({error:"incorrect email or password !!"});
 
     const validPassword = bcrypt.compareSync(req.body.password,user.password)
-    if (!validPassword) next(new AppError('incorrect email or password !!',400));
+    if (!validPassword) return res.status(400).send({error:"incorrect email or password !!"});
 
     const findRole = await roleModel.findById(user.role)
-    if (!findRole){return next(new AppError('role dusent exist',404))} 
+    if (!findRole)return res.status(404).send("role not found !!");
 
     const token = jwt.sign({Data: user,pages:findRole.pages,roleTitle:findRole.roleName}, "jwtPrivateKey",{expiresIn:'1d'})
     res.header('Authorization',token).send({data:token})
