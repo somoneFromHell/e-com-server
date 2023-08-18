@@ -6,21 +6,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     minLength: 2,
     maxLength: 15,
-    unique: true,
   },
   middleName: {
     type: String,
     required: true,
     minLength: 2,
     maxLength: 15,
-    unique: true,
   },
   lastName: {
     type: String,
     required: true,
     minLength: 2,
     maxLength: 15,
-    unique: true,
   },
   profileImage: {
     type: String,
@@ -35,7 +32,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
   },
   recoveryEmail:{
     type: String,
