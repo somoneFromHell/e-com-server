@@ -2,6 +2,7 @@ const userModel = require("../models/userModal")
 const roleModel = require("../models/roleModel")
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken');
+const catchAsync = require('../utils/catchAsync')
 
 module.exports.createUser =  async(req,res,next) => {
     try {

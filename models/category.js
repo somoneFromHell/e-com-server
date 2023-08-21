@@ -3,11 +3,15 @@ const mongoose = require('mongoose');
 const categorySchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    minlength: 3, 
+    maxlength: 20,
   },
   description: {
     type: String,
     required: true,
+    minlength: 10, 
+    maxlength: 200,
   },
   image: {
     type: String,
