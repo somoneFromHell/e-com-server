@@ -15,31 +15,29 @@ exports.getRole = catchAsync(async (req, res, next) => {
 })
 
 exports.addNewRole = catchAsync(async (req, res, next) => {
+  const { roleName, rights } = req.body;
 
-  const { role, rights } = req.body
-  console.log(req.body)
+  const roleNotExist = (await Role.countDocuments({ roleName: roleName, isDeleted: false })) === 0;
+  console.log(`roleDoesntExist: ${roleNotExist}`);
 
-  const roleExists = (await Role.find({ role: role, deleted: false }).count()) === 0;
-  const newRole = new Role({ role, rights })
-  if (!roleExists) {
+  if (roleNotExist) {
+    const newRole = new Role({ roleName, rights });
     const newRoleAdded = await Role.create(newRole);
-    res
-      .status(201)
-      .json({
-        data: newRoleAdded,
-        message: "Role added successfully",
-      });
+    res.status(201).json({
+      data: newRoleAdded,
+      message: "Role added successfully",
+    });
   } else {
-    next(new appError(`Role '${role}' alrady exist`, 400))
+    next(new appError(`Role '${roleName}' already exists`, 400));
   }
+});
 
-})
 
 exports.getRoleById = catchAsync(async (req, res, next) => {
 
   const recordExists = await Role.findById(req.params.id);
-  if (!recordExists || recordExists.deleted)
-    next(new appError(`Role dosen't exist`,400))
+  if (!recordExists || recordExists.isDeleted)
+    next(new appError(`Role dosen't exist`, 400))
 
   res.status(200).send({ data: recordExists });
 
@@ -47,33 +45,32 @@ exports.getRoleById = catchAsync(async (req, res, next) => {
 
 exports.updateRole = catchAsync(async (req, res, next) => {
 
-  const roleId = req.params.id;
-  const roleToUpdate = await Role.findById(roleId);
+  const roleToUpdate = await Role.findById(req.body._id);
 
-  if (!roleToUpdate || roleToUpdate.deleted) {
-    next(new appError(`Role dosen't exist`,400))
+  if (!roleToUpdate || roleToUpdate.isDeleted) {
+    next(new appError(`Role dosen't exist`, 400))
   }
 
   const updateData = {};
   // Check if any changes are made before updating the 'updatedAt' field.
-  if (roleToUpdate.name !== req.body.name) {
-    updateData.name = req.body.name;
+  if (roleToUpdate.roleName !== req.body.roleName) {
+    updateData.roleName = req.body.roleName;
   }
-  if (roleToUpdate.description !== req.body.description) {
-    updateData.description = req.body.description;
+  if (roleToUpdate.rights !== req.body.rights) {
+    updateData.rights = req.body.rights;
   }
 
   if (Object.keys(updateData).length === 0) {
     // No changes were made to the role data.
-    return res
-      .status(200)
-      .json({ message: "No changes were made to the role" });
+    next(new appError(`No changes were made to the role`, 200))
+
+
   }
   updateData.updatedAt = Date.now();
-  await Role.findByIdAndUpdate(roleId, updateData);
+  await Role.findByIdAndUpdate(req.body._id, updateData);
 
   // Fetch the updated role from the database.
-  const updatedRole = await Role.findById(roleId);
+  const updatedRole = await Role.findById(req.body._id);
   res
     .status(200)
     .json({
@@ -83,22 +80,16 @@ exports.updateRole = catchAsync(async (req, res, next) => {
 
 })
 
-exports.deleteRole = catchAsync((req, res, next) => {
-  Role
-    .findByIdAndUpdate(
+exports.deleteRole = catchAsync(async (req, res, next) => {
+    const updateRole = await Role.findByIdAndUpdate(
       req.params.id,
-      { deleted: true, deletedAt: Date.now() },
+      { isDeleted: true, deletedAt: Date.now() },
       { new: true }
-    )
-    .then((updateRole) => {
-      if (!updateRole) {
-    next(new appError(`Role dosen't exist`,400))
-        
-        
-      } else {
-        res.status(204).end();
-      }
-    })
+    );
+    if (!updateRole) {
+      return next(new appError(`Role doesn't exist`, 400));
+    }
+    res.status(204).end();
 })
 
 exports.getAllIncDelRole = catchAsync(async (req, res, next) => {

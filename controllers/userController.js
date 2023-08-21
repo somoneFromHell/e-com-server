@@ -1,35 +1,30 @@
 const userModel = require("../models/userModal");
+const appError = require("../utils/appError");
+const catchAsync = require("../utils/catchAsync")
 
-exports.getUser = async (req, res, next) => {
-  try {
-   
+
+exports.getUser = catchAsync(async (req, res, next) => {
+
     const recordExists = await userModel.find({ isDeleted: false });
     if (recordExists.length === 0) {
-      res.status(204).send({message:"no data"});
+      res.status(204).end();
+
     } else {
       res.status(200).send({ data: recordExists });
     }
-  } catch (error) {
-      console.error("Error while fetching role:", error);
-      res.status(500).json({ error: { message: "Server error" } });
-  }
-};
+})
 
 
 
-exports.getUserById = async (req, res, next) => {
-  try {
+exports.getUserById = catchAsync(async (req, res, next) => {
+
     const recordExists = await userModel.findById(req.params.id);
     if (!recordExists || recordExists.isDeleted)
-      res
-        .status(400)
-        .json({ error: { message: "bad request | record not found" } });
+    next(new appError(`bad request | record not found`, 400))
 
     res.status(200).send({ data: recordExists });
-  } catch (error) {
-    res.status(400).json({ error: { message: error, code: error.code } });
-  }
-};
+  
+})
 
 exports.updateUser = async (req, res, next) => {
   try {

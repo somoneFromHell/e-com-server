@@ -3,18 +3,21 @@ const roleModel = require("../models/roleModel")
 const bcrypt = require("bcrypt")
 const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync')
+const appError = require("../utils/appError")
 
-module.exports.createUser =  async(req,res,next) => {
-    try {
+
+module.exports.createUser = catchAsync(async(req,res,next) => {
+
        const {firstName,lastName,middleName,email,password,role} = req.body;
       const existingUser = await userModel.findOne({email:req.body.email});
       if (existingUser) {
-        return res.status(400).json({ message: "email already taken" });
+        next(new appError(`'${req.body.email}' email already taken`, 400));
+
       }
       
       var getRole = await roleModel.findById(role)
       if(!getRole){
-        return res.status(404).json({ message: "role not found..." });
+        next(new appError(`'${role}' role not found...`, 400));
       }
       const newUser = {
         firstName:firstName,
@@ -31,24 +34,23 @@ module.exports.createUser =  async(req,res,next) => {
     
         const savedUser = await userModel.create(newUser);
         res.status(201).json(savedUser);
-      } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Error registering user" ,error:error});
-      }
-}
+      
+})
 
-module.exports.loginUser = async (req, res,next ) => {
+module.exports.loginUser = catchAsync(async(req, res,next ) => {
     var {email,password} = new userModel(req.body);
-    if (!email||!password) return res.status(400).send("not enaugh data");
+    if (!email||!password) 
+    next(new appError(`provide proper credentials`, 400));
 
     const user = await userModel.findOne({ email: req.body.email }).populate('role');
-    if (!user) return res.status(400).send({error:"incorrect email or password !!"});
+    if (!user) next(new appError(`incorrect credentials`, 400));
+
 
     const validPassword = bcrypt.compareSync(req.body.password,user.password)
-    if (!validPassword) return res.status(400).send({error:"incorrect email or password !!"});
+    if (!validPassword) next(new appError(`incorrect credentials`, 400));
 
     const findRole = await roleModel.findById(user.role)
-    if (!findRole)return res.status(404).send("role not found !!");
+    if (!findRole)next(new appError(`role not found`, 500));
 
     const TokenData = {
       firstName : user.firstName,
@@ -62,4 +64,4 @@ module.exports.loginUser = async (req, res,next ) => {
 
     const token = jwt.sign({TokenData}, "jwtPrivateKey",{expiresIn:'1d'})
     res.header('Authorization',token).send({data:token})
-}
+})

@@ -23,30 +23,24 @@ const errorForDev = (err, res) => {
 
 const errForProd = (err, res) => {
 
-    if (err.isOperational) {
+   
         res.status(err.statusCode).json({
-            error: { code: err.statusCode, message: err.message }
+            code: err.statusCode, message: err.message 
         })
-    } else {
-        res.status(500).json({
-            error: { code: 500, message: "server error" }
-        })
-    }
-
+    
 }
 
 module.exports = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || "error"
-    console.error('ERROR', err)
 
     if (process.env.NODE_ENV === "development") {
         errorForDev(err, res)
     } else if (process.env.NODE_ENV === "production") {
-        let error = { ...err }
+        let error = Object.assign({}, err);
         if (error.kind === "ObjectId") error = handleCastError(error)
         if (error.errors) error = handleValidationError(error)
-        console.log(error)
+        
         errForProd(err, res)
     }
 }

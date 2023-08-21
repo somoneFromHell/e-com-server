@@ -6,7 +6,7 @@ const rightSchema = new mongoose.Schema({
     required: true,
     
   },
-  rights: {
+  requestRights: {
     GET: Boolean,
     PUT: Boolean,
     POST: Boolean,
@@ -15,10 +15,9 @@ const rightSchema = new mongoose.Schema({
 });
 
 const roleSchema = new mongoose.Schema({
-  name: {
+  roleName: {
     type: String,
     required: true,
-    unique: true
   },
   rights: [rightSchema],
   createdAt: {
@@ -26,6 +25,9 @@ const roleSchema = new mongoose.Schema({
     default: Date.now
   },
   updatedAt: {
+    type: Date
+  },
+  deletedAt:{
     type: Date
   },
  
