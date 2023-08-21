@@ -22,12 +22,9 @@ const errorForDev = (err, res) => {
 }
 
 const errForProd = (err, res) => {
-
-   
         res.status(err.statusCode).json({
             code: err.statusCode, message: err.message 
         })
-    
 }
 
 module.exports = (err, req, res, next) => {

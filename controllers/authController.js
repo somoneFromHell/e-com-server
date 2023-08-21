@@ -57,7 +57,7 @@ module.exports.loginUser = catchAsync(async(req, res,next ) => {
       lastName : user.lastName,
       middleName : user.middleName,
       email:user.email,
-      role:user.role.name,
+      role:user.role.roleName,
       rights:user.role.rights
 
     }
