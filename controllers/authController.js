@@ -42,9 +42,8 @@ module.exports.loginUser = catchAsync(async(req, res,next ) => {
     if (!email||!password) 
     next(new appError(`provide proper credentials`, 400));
 
-    const user = await userModel.findOne({ email: req.body.email }).populate('role');
+    const user = await userModel.findOne({ email: req.body.email });
     if (!user) next(new appError(`incorrect credentials`, 400));
-
 
     const validPassword = bcrypt.compareSync(req.body.password,user.password)
     if (!validPassword) next(new appError(`incorrect credentials`, 400));
@@ -52,16 +51,6 @@ module.exports.loginUser = catchAsync(async(req, res,next ) => {
     const findRole = await roleModel.findById(user.role)
     if (!findRole)next(new appError(`role not found`, 500));
 
-    const TokenData = {
-      firstName : user.firstName,
-      lastName : user.lastName,
-      middleName : user.middleName,
-      email:user.email,
-      role:user.role.roleName,
-      rights:user.role.rights
-
-    }
-
-    const token = jwt.sign({TokenData}, "jwtPrivateKey",{expiresIn:'1d'})
+    const token = jwt.sign({userId:user._id}, "jwtPrivateKey",{expiresIn:'1d'})
     res.header('Authorization',token).send({data:token})
 })

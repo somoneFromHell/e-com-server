@@ -14,11 +14,9 @@ exports.getUser = catchAsync(async (req, res, next) => {
     }
 })
 
-
-
 exports.getUserById = catchAsync(async (req, res, next) => {
 
-    const recordExists = await userModel.findById(req.params.id);
+    const recordExists = await userModel.findById(req.params.id).populate('role');
     if (!recordExists || recordExists.isDeleted)
     next(new appError(`bad request | record not found`, 400))
 
