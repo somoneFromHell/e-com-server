@@ -13,18 +13,18 @@ const handleValidationError = err => {
 }
 
 const errorForDev = (err, res) => {
-    res.status(err.statusCode).json({
+    res.status(err.statusCode).json({error:{
         status: err.status,
         error: err,
         message: err.message,
         stack: err.stack
-    })
+    }})
 }
 
 const errForProd = (err, res) => {
-        res.status(err.statusCode).json({
+        res.status(err.statusCode).json({error:{
             code: err.statusCode, message: err.message 
-        })
+        }})
 }
 
 module.exports = (err, req, res, next) => {
