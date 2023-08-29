@@ -66,10 +66,21 @@ module.exports.loginUser = catchAsync(async (req, res, next) => {
 
 module.exports.forgetPassword = catchAsync(async (req, res, next) => {
   const user = await userModel.findOne({ email: req.body.email });
+
   if (!user) next(new appError(`user dosent exist`, 400));
 
   let resetToken = crypto.randomBytes(32).toString("hex");
-  const hash = await bcrypt.hash(resetToken, 10);
+  const hashedToken = await bcrypt.hash(resetToken, 10);
+
+  const tokenAddedToUser = await userModel.findOneAndUpdate(
+    { email:user.email },
+    { resetToken: hashedToken },
+    { new: true }
+  );
+
+  if (!tokenAddedToUser) {
+    next(new appError(`User not found`, 404));
+  }
 
   const resetLink = `${process.env.CLIENT_URL}/auth-pass-change?token=${resetToken}&id=${user._id}`;
 
@@ -134,16 +145,28 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 });
 
 module.exports.resetPassword = catchAsync(async (res, req, next) => {
-  const { userId, newPassword } = req.body;
+  const { token, id, newPassword } = req.body;
+
+  const user = await userModel.findById(id);
+
+  if (!user) {
+    return next(new appError(`user dosent exist`, 400));
+  }
+  const isTokenValid = await bcrypt.compare(token, user.resetToken);
+
+  if (!isTokenValid) {
+    return next(new appError(`token is invalid`, 400));
+  }
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(newPassword, salt);
-  const user = await userModel.findByIdAndUpdate(
-    userId,
+  const updateUser = await userModel.findByIdAndUpdate(
+    id,
     { password: hashedPassword },
     { new: true }
   );
-  if (!user) {
+  if (!updateUser) {
     return next(new Error("User not found"));
   }
-  res.json({ data: "Password reset successful" });
+  return res.json({ data: "Password reset successful" });
 });

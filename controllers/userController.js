@@ -7,10 +7,10 @@ exports.getUser = catchAsync(async (req, res, next) => {
 
     const recordExists = await userModel.find({ isDeleted: false });
     if (recordExists.length === 0) {
-      res.status(204).end();
+      return res.status(204).end();
 
     } else {
-      res.status(200).send({ data: recordExists });
+     return res.status(200).send({ data: recordExists });
     }
 })
 
