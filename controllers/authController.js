@@ -71,7 +71,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
   let resetToken = crypto.randomBytes(32).toString("hex");
   const hash = await bcrypt.hash(resetToken, 10);
 
-  const resetLink = `${process.env.CLIENT_URL}/auth-pass-change?token=${resetToken}&id=${user._id}`;
+  const resetLink = `${process.env.CLIENT_URL}/auth-pass-change`;
 
   const emailContent = `
   <html>
