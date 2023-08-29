@@ -1,5 +1,5 @@
 const express = require('express');
-const {createUser,loginUser} = require('../controllers/authController') 
+const {createUser,loginUser,forgetPassword,resetPassword} = require('../controllers/authController') 
 const router = express.Router();
 const multer = require("multer");
 
@@ -28,6 +28,8 @@ const upload = multer({ storage: storage,fileFilter: imageFileFilter });
 
 router.post('/register',upload.single("profileImage"),createUser)
 router.post('/login',loginUser)
+router.post('/forget-password',forgetPassword)
+router.post('/reset-password',resetPassword)
 
 
 
