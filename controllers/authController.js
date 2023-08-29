@@ -6,6 +6,7 @@ const catchAsync = require("../utils/catchAsync");
 const appError = require("../utils/appError");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const { v4: uuidv4 } = require('uuid');
 
 const transporter = nodemailer.createTransport({
   host: "smtp-mail.outlook.com",
@@ -69,12 +70,11 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 
   if (!user) next(new appError(`user dosent exist`, 400));
 
-  let resetToken = crypto.randomBytes(32).toString("hex");
-  const hashedToken = await bcrypt.hash(resetToken, 10);
-
+  let Token = uuidv4();
+  
   const tokenAddedToUser = await userModel.findOneAndUpdate(
     { email:user.email },
-    { resetToken: hashedToken },
+    { resetToken: Token },
     { new: true }
   );
 
@@ -152,9 +152,8 @@ module.exports.resetPassword = catchAsync(async (res, req, next) => {
   if (!user) {
     return next(new appError(`user dosent exist`, 400));
   }
-  const isTokenValid = await bcrypt.compare(token, user.resetToken);
 
-  if (!isTokenValid) {
+  if (token !== user.resetToken) {
     return next(new appError(`token is invalid`, 400));
   }
 
