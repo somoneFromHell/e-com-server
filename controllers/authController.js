@@ -164,8 +164,10 @@ module.exports.resetPassword = catchAsync(async (res, req, next) => {
     { password: hashedPassword },
     { new: true }
   );
-  if (!updateUser) {
-    return next(new Error("User not found"));
+  if (updateUser) {
+    await userModel.findByIdAndUpdate(id, { resetToken: "" });
+    return res.json({ data: "Password reset successful" });
+  } else {
+    return res.status(400).json({ error: "User update not requested" });
   }
-  return res.json({ data: "Password reset successful" });
 });
