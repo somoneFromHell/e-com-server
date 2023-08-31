@@ -134,7 +134,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 `;
 
   const mailOptions = {
-    from: "sandbox.smtp.mailtrap.io",
+    from: "90ebc16da08d42",
     to: user.email,
     subject: "Password Reset Request",
     html: emailContent,
@@ -145,7 +145,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 });
 
 module.exports.resetPassword = catchAsync(async (res, req, next) => {
-  const { token, id, newPassword } = req.body;
+  const { token, id, newPassword } = res.body;
 
   const user = await userModel.findById(id);
 
