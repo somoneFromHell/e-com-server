@@ -82,7 +82,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
     next(new appError(`User not found`, 404));
   }
 
-  const resetLink = `${process.env.CLIENT_URL}/auth-pass-change?token=${resetToken}&id=${user._id}`;
+  const resetLink = `${process.env.CLIENT_URL}/auth-pass-change?token=${Token}&id=${user._id}`;
 
   const emailContent = `
   <html>
