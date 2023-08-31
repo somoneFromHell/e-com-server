@@ -9,11 +9,11 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require('uuid');
 
 const transporter = nodemailer.createTransport({
-  host: "smtp-mail.outlook.com",
-  port: 587,
+  host: "sandbox.smtp.mailtrap.io",
+  port: 25,
   auth: {
-    user: "somone_from_hell@outlook.com",
-    pass: "NodeMailer@123",
+    user: "90ebc16da08d42",
+    pass: "dfd056aec31a23",
   },
 });
 
@@ -134,7 +134,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 `;
 
   const mailOptions = {
-    from: "somone_from_hell@outlook.com",
+    from: "sandbox.smtp.mailtrap.io",
     to: user.email,
     subject: "Password Reset Request",
     html: emailContent,
