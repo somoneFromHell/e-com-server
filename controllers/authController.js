@@ -8,14 +8,18 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require('uuid');
 
-const transporter = nodemailer.createTransport({
+
+
+var transporter = nodemailer.createTransport({
   host: "sandbox.smtp.mailtrap.io",
-  port: 25,
+  port: 2525,
   auth: {
     user: "90ebc16da08d42",
-    pass: "dfd056aec31a23",
-  },
+    pass: "dfd056aec31a23"
+  }
 });
+
+const secretKey = "secret-key"
 
 module.exports.createUser = catchAsync(async (req, res, next) => {
   const { firstName, lastName, middleName, email, password, role } = req.body;
@@ -66,21 +70,27 @@ module.exports.loginUser = catchAsync(async (req, res, next) => {
 });
 
 module.exports.forgetPassword = catchAsync(async (req, res, next) => {
-  const user = await userModel.findOne({ email: req.body.email });
+  const {email} = req.body;
+  const user = await userModel.findOne({ email: email });
 
   if (!user) next(new appError(`user dosent exist`, 400));
+  
+  const Token = uuidv4()
 
-  let Token = uuidv4();
+
+
   
   const tokenAddedToUser = await userModel.findOneAndUpdate(
-    { email:user.email },
+    {email},
     { resetToken: Token },
     { new: true }
   );
 
   if (!tokenAddedToUser) {
     next(new appError(`User not found`, 404));
+
   }
+  console.log(tokenAddedToUser)
 
   const resetLink = `${process.env.CLIENT_URL}/auth-pass-change?token=${Token}&id=${user._id}`;
 
@@ -134,31 +144,32 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 `;
 
   const mailOptions = {
-    from: "90ebc16da08d42",
+    from: "ae5a225bfa-a10e7d@inbox.mailtrap.io",
     to: user.email,
     subject: "Password Reset Request",
     html: emailContent,
-  };
+  }; 
 
   const sentMail = await transporter.sendMail(mailOptions);
   return res.json({ data: sentMail });
 });
 
-module.exports.resetPassword = catchAsync(async (res, req, next) => {
-  const { token, id, newPassword } = res.body;
+module.exports.resetPassword = catchAsync(async (req, res, next) => {
+  const { token, id, password } = req.body;
 
   const user = await userModel.findById(id);
-
+  console.log(id)
   if (!user) {
     return next(new appError(`user dosent exist`, 400));
   }
+  console.log(user)
 
   if (token !== user.resetToken) {
     return next(new appError(`token is invalid`, 400));
   }
 
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(newPassword, salt);
+  const hashedPassword = await bcrypt.hash(password, salt);
   const updateUser = await userModel.findByIdAndUpdate(
     id,
     { password: hashedPassword },
@@ -168,6 +179,6 @@ module.exports.resetPassword = catchAsync(async (res, req, next) => {
     await userModel.findByIdAndUpdate(id, { resetToken: "" });
     return res.json({ data: "Password reset successful" });
   } else {
-    return res.status(400).json({ error: "User update not requested" });
+    return res.status(400).send({ error: "User update not requested" });
   }
 });
