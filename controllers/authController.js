@@ -243,11 +243,11 @@ module.exports.editProfile = catchAsync(async (req, res, next) => {
 
 module.exports.changePassword = catchAsync(async (req, res, next) => {
   const { oldPassword, newPassword } = req.body;
-  const token = req.headers["authorization"];
+  const token = req.headers["authorization"].split(" ")[1];
   const { userId } = jwt.decode(token);
   const passwordToChange = await userModel.findOne({ _id: userId }).exec();
   if (!oldPassword || !newPassword) {
-    return next(new appError(`plese provide both old and new passoword`, 400));
+    return next(new appError(`Please provide both your previous and updated passwords.`, 400));
   }
   if (!passwordToChange) {
     return next(new appError(`The user does not appear to be registered.`, 400));
