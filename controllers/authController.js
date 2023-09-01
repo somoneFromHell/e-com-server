@@ -6,20 +6,38 @@ const catchAsync = require("../utils/catchAsync");
 const appError = require("../utils/appError");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const { v4: uuidv4 } = require('uuid');
-
-
+const { v4: uuidv4 } = require("uuid");
 
 var transporter = nodemailer.createTransport({
   host: "http://smtp-mail.outlook.com/",
   port: 587,
   auth: {
     user: "avasfdsansokln234@outlook.com",
-    pass: "98cKe9dG95CjCJq"
-  }
+    pass: "98cKe9dG95CjCJq",
+  },
 });
 
-const secretKey = "secret-key"
+function validatePassword(password) {
+  // Define password criteria
+  const minLength = 8; // Minimum length
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+
+  // Check if the password meets all criteria
+  if (
+    password.length >= minLength &&
+    hasUpperCase &&
+    hasLowerCase &&
+    hasNumber 
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+const secretKey = "secret-key";
 
 module.exports.createUser = catchAsync(async (req, res, next) => {
   const { firstName, lastName, middleName, email, password, role } = req.body;
@@ -70,27 +88,22 @@ module.exports.loginUser = catchAsync(async (req, res, next) => {
 });
 
 module.exports.forgetPassword = catchAsync(async (req, res, next) => {
-  const {email} = req.body;
+  const { email } = req.body;
   const user = await userModel.findOne({ email: email });
 
-  if (!user) next(new appError(`user dosent exist`, 400));
-  
-  const Token = uuidv4()
+  if (!user) next(new appError(`The user does not appear to be registered.`, 400));
 
+  const Token = uuidv4();
 
-
-  
   const tokenAddedToUser = await userModel.findOneAndUpdate(
-    {email},
+    { email },
     { resetToken: Token },
     { new: true }
   );
 
   if (!tokenAddedToUser) {
-    next(new appError(`User not found`, 404));
-
+    next(new appError(`The user does not appear to be registered.`, 404));
   }
-  console.log(tokenAddedToUser)
 
   const resetLink = `${process.env.CLIENT_URL}/auth-pass-change?token=${Token}&id=${user._id}`;
 
@@ -148,7 +161,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
     to: user.email,
     subject: "Password Reset Request",
     html: emailContent,
-  }; 
+  };
 
   const sentMail = await transporter.sendMail(mailOptions);
   return res.json({ data: sentMail });
@@ -158,14 +171,20 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
   const { token, id, password } = req.body;
 
   const user = await userModel.findById(id);
-  console.log(id)
+  console.log(id);
   if (!user) {
-    return next(new appError(`user dosent exist`, 400));
+    return next(new appError(`The user does not appear to be registered.`, 400));
   }
-  console.log(user)
+  console.log(user);
 
   if (token !== user.resetToken) {
     return next(new appError(`token is invalid`, 400));
+  }
+
+  if (!validatePassword(password)) {
+    return next(
+      new appError(`The password must consist of a minimum of 8 characters at least one digit and one uppercase letter.`, 400)
+    );
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -183,16 +202,14 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-module.exports.editProfile = catchAsync(async(req,res,next)=>{
-  var token = req.headers['authorization']; 
-  const {userId} = jwt.decode(token);
+module.exports.editProfile = catchAsync(async (req, res, next) => {
+  var token = req.headers["authorization"];
+  const { userId } = jwt.decode(token);
 
-  const ProfileToChange = userModel.findById(userId)
-  if(!ProfileToChange||ProfileToChange.deleted){
-    next(new appError(`userModel not found`, 400))
+  const ProfileToChange = userModel.findById(userId);
+  if (!ProfileToChange || ProfileToChange.deleted) {
+    next(new appError(`userModel not found`, 400));
   }
-
-
   const updateData = {};
   // Check if any changes are made before updating the 'updatedAt' field.
   if (ProfileToChange.firstName !== req.body.firstName) {
@@ -210,21 +227,51 @@ module.exports.editProfile = catchAsync(async(req,res,next)=>{
 
   if (Object.keys(updateData).length === 0) {
     // No changes were made to the userModel data.
-    next(new appError(`No changes were made to the userModel data`, 400))
+   return next(new appError(`No changes were made to the userModel data`, 400));
   }
   updateData.updatedAt = Date.now();
   await userModel.findByIdAndUpdate(userId, updateData);
 
   // Fetch the updated userModel from the database.
   const updatedProfile = await userModel.findById(userId);
-  res
-    .status(200)
-    .json({
-      message: "Profile updated successfully",
-      data: updatedProfile,
-    });
+  return res.status(200).json({
+    message: "Profile updated successfully",
+    data: updatedProfile,
+  });
 
+});
 
-  return res.status(400).send({ error: "User not found" });
-
-})
+module.exports.changePassword = catchAsync(async (req, res, next) => {
+  const { oldPassword, newPassword } = req.body;
+  const token = req.headers["authorization"];
+  const { userId } = jwt.decode(token);
+  const passwordToChange = await userModel.findOne({ _id: userId }).exec();
+  if (!oldPassword || !newPassword) {
+    return next(new appError(`plese provide both old and new passoword`, 400));
+  }
+  if (!passwordToChange) {
+    return next(new appError(`The user does not appear to be registered.`, 400));
+  }
+  const ComparePassword = bcrypt.compareSync(
+    oldPassword,
+    passwordToChange.password
+  );
+  if (!ComparePassword) return next(new appError(`The previous password is not valid.`, 400));
+  if (!validatePassword(newPassword)) {
+    return next(
+      new appError(`The password must consist of a minimum of 8 characters at least one digit and one uppercase letter.`, 400)
+    );
+  }
+  if (oldPassword === newPassword) {
+    return next(new appError(`Kindly select an alternative password.`, 400));
+  }
+  const salt = await bcrypt.genSalt(10);
+  const changedPassword = await bcrypt.hash(newPassword, salt);
+  const updatedPassword = await userModel.findByIdAndUpdate(userId, {
+    password: changedPassword,
+  });
+  return res.status(200).json({
+    message: "Password updated successfully",
+    data: updatedPassword,
+  });
+});
