@@ -1,5 +1,5 @@
 const express = require('express');
-const {createUser,loginUser,forgetPassword,resetPassword} = require('../controllers/authController') 
+const {createUser,loginUser,forgetPassword,resetPassword,editProfile} = require('../controllers/authController') 
 const router = express.Router();
 const multer = require("multer");
 
@@ -30,6 +30,7 @@ router.post('/register',upload.single("profileImage"),createUser)
 router.post('/login',loginUser)
 router.post('/forget-password',forgetPassword)
 router.post('/reset-password',resetPassword)
+router.put('/edit-profile',editProfile)
 
 
 

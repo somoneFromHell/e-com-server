@@ -11,11 +11,11 @@ const { v4: uuidv4 } = require('uuid');
 
 
 var transporter = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: "http://smtp-mail.outlook.com/",
+  port: 587,
   auth: {
-    user: "90ebc16da08d42",
-    pass: "dfd056aec31a23"
+    user: "avasfdsansokln234@outlook.com",
+    pass: "98cKe9dG95CjCJq"
   }
 });
 
@@ -144,7 +144,7 @@ module.exports.forgetPassword = catchAsync(async (req, res, next) => {
 `;
 
   const mailOptions = {
-    from: "ae5a225bfa-a10e7d@inbox.mailtrap.io",
+    from: "avasfdsansokln234@outlook.com",
     to: user.email,
     subject: "Password Reset Request",
     html: emailContent,
@@ -182,3 +182,49 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
     return res.status(400).send({ error: "User update not requested" });
   }
 });
+
+module.exports.editProfile = catchAsync(async(req,res,next)=>{
+  var token = req.headers['authorization']; 
+  const {userId} = jwt.decode(token);
+
+  const ProfileToChange = userModel.findById(userId)
+  if(!ProfileToChange||ProfileToChange.deleted){
+    next(new appError(`userModel not found`, 400))
+  }
+
+
+  const updateData = {};
+  // Check if any changes are made before updating the 'updatedAt' field.
+  if (ProfileToChange.firstName !== req.body.firstName) {
+    updateData.firstName = req.body.firstName;
+  }
+  if (ProfileToChange.middleName !== req.body.middleName) {
+    updateData.middleName = req.body.middleName;
+  }
+  if (ProfileToChange.lastName !== req.body.lastName) {
+    updateData.lastName = req.body.lastName;
+  }
+  if (ProfileToChange.email !== req.body.email) {
+    updateData.email = req.body.email;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    // No changes were made to the userModel data.
+    next(new appError(`No changes were made to the userModel data`, 400))
+  }
+  updateData.updatedAt = Date.now();
+  await userModel.findByIdAndUpdate(userId, updateData);
+
+  // Fetch the updated userModel from the database.
+  const updatedProfile = await userModel.findById(userId);
+  res
+    .status(200)
+    .json({
+      message: "Profile updated successfully",
+      data: updatedProfile,
+    });
+
+
+  return res.status(400).send({ error: "User not found" });
+
+})
